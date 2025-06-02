@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}Слоты{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card bg-dark border-secondary">
+                <div class="card-header">
+                    <h2 class="text-center">Слоты</h2>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <div id="slots-display" class="display-1 mb-4">
+                            <span>❓</span>
+                            <span>❓</span>
+                            <span>❓</span>
+                        </div>
+                        <div id="result-message" class="h4 mb-4"></div>
+                    </div>
+                    
+                    <form id="slots-form" class="mb-4">
+                        <div class="mb-3">
+                            <label for="bet" class="form-label">Ставка</label>
+                            <input type="number" class="form-control bg-dark text-light border-secondary" 
+                                   id="bet" name="bet" min="1" step="1" required>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">Крутить</button>
+                        </div>
+                    </form>
+                    
+                    <div class="text-center">
+                        <h4>Множители:</h4>
+                        <p>3 одинаковых символа (7️⃣ или 💎): x5</p>
+                        <p>3 одинаковых фрукта: x3</p>
+                        <p>2 одинаковых символа: x2</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('slots-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const bet = form.bet.value;
+    
+    try {
+        const response = await fetch('{{ url_for("games.slots") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `bet=${bet}`
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            const display = document.getElementById('slots-display');
+            const message = document.getElementById('result-message');
+            
+            // Анимация вращения
+            display.innerHTML = '🎰 🎰 🎰';
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // Показываем результат
+            display.innerHTML = data.result.join(' ');
+            
+            if (data.win) {
+                message.innerHTML = `Поздравляем! Вы выиграли ${data.amount}₽`;
+                message.className = 'h4 mb-4 text-success';
+            } else {
+                message.innerHTML = 'Попробуйте еще раз!';
+                message.className = 'h4 mb-4 text-danger';
+            }
+            
+            // Обновляем баланс в шапке
+            const balanceElement = document.querySelector('.nav-link span.balance');
+            if (balanceElement) {
+                balanceElement.textContent = `${data.new_balance}₽`;
+            }
+        } else {
+            throw new Error(data.error || 'Произошла ошибка');
+        }
+    } catch (error) {
+        alert(error.message);
+    }
+});
+</script>
+{% endblock %} 

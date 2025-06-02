@@ -1,0 +1,223 @@
+{% extends "base.html" %}
+
+{% block title %}Valb1k Coin{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Игровое поле -->
+    <div class="row justify-content-center">
+        <div class="col-md-6 text-center">
+            <div class="game-stats mb-4">
+                <div class="d-flex justify-content-around">
+                    <div>
+                        <h5 class="text-muted">КЛИКИ</h5>
+                        <span class="text-primary fs-4" id="click-count">0</span>
+                    </div>
+                    <div>
+                        <h5 class="text-muted">МНОЖИТЕЛЬ</h5>
+                        <span class="text-success fs-4" id="multiplier">x1</span>
+                    </div>
+                    <div>
+                        <h5 class="text-muted">БАЛАНС</h5>
+                        <span class="text-warning fs-4" id="balance">0</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="coin-container">
+                <img src="{{ url_for('static', filename='images/image.png') }}" class="interactive-coin" id="valb1k-coin" alt="Valb1k Coin">
+            </div>
+            
+            <div class="mt-4">
+                <button class="btn btn-primary" id="collect-btn">Забрать выигрыш</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SVG градиенты и фильтры -->
+<svg width="0" height="0">
+    <defs>
+        <radialGradient id="shine" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+            <stop offset="0%" style="stop-color:rgba(255,255,255,0.8);"/>
+            <stop offset="100%" style="stop-color:rgba(255,255,255,0);"/>
+        </radialGradient>
+    </defs>
+</svg>
+{% endblock %}
+
+{% block styles %}
+<style>
+.coin-container {
+    perspective: 1000px;
+    width: 150px;
+    height: 150px;
+    margin: 0 auto;
+    position: relative;
+    cursor: pointer;
+    margin-top: -20px;
+}
+
+.interactive-coin {
+    width: 100%;
+    height: 100%;
+    transition: transform 0.3s ease-out;
+    filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.5));
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.interactive-coin:hover {
+    transform: scale(1.1);
+    filter: drop-shadow(0 0 25px rgba(255, 215, 0, 0.7));
+}
+
+.interactive-coin.clicked {
+    animation: coinClick 0.5s ease-out;
+}
+
+@keyframes coinClick {
+    0% { transform: scale(1) rotate(0deg); }
+    50% { transform: scale(0.95) rotate(5deg); }
+    100% { transform: scale(1) rotate(0deg); }
+}
+
+.shine {
+    opacity: 0;
+    transition: opacity 0.3s ease-out;
+}
+
+.interactive-coin:hover .shine {
+    opacity: 0.5;
+}
+
+.text-success {
+    color: #00ff87 !important;
+}
+
+.text-warning {
+    color: #ffd700 !important;
+}
+
+.game-stats {
+    background: rgba(26, 31, 53, 0.8);
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.btn-primary {
+    background: linear-gradient(145deg, #00d2ff, #3a7bd5);
+    border: none;
+    font-weight: 500;
+    padding: 10px 30px;
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 210, 255, 0.3);
+}
+
+.btn-primary:disabled {
+    background: linear-gradient(145deg, #1a1f35, #2d3555);
+    transform: none;
+    box-shadow: none;
+}
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const coin = document.getElementById('valb1k-coin');
+    const clickCount = document.getElementById('click-count');
+    const multiplier = document.getElementById('multiplier');
+    const balance = document.getElementById('balance');
+    const collectBtn = document.getElementById('collect-btn');
+    
+    let clicks = 0;
+    let currentMultiplier = 1;
+    let currentBalance = 0;
+    let canClick = true;
+    
+    // Обработка клика по монете
+    coin.addEventListener('click', function() {
+        if (!canClick) return;
+        
+        clicks++;
+        clickCount.textContent = clicks;
+        
+        // Добавляем класс для анимации и удаляем его после завершения
+        coin.classList.add('clicked');
+        setTimeout(() => coin.classList.remove('clicked'), 500);
+        
+        // Обновляем множитель каждые 10 кликов
+        if (clicks % 10 === 0) {
+            currentMultiplier++;
+            multiplier.textContent = `x${currentMultiplier}`;
+            
+            // Добавляем эффект свечения при увеличении множителя
+            multiplier.style.textShadow = '0 0 10px #00ff87';
+            setTimeout(() => multiplier.style.textShadow = 'none', 1000);
+        }
+        
+        // Обновляем баланс
+        currentBalance = clicks * currentMultiplier;
+        balance.textContent = currentBalance;
+    });
+    
+    // Обработка кнопки сбора выигрыша
+    collectBtn.addEventListener('click', function() {
+        if (currentBalance > 0) {
+            collectWinnings();
+        }
+    });
+    
+    function collectWinnings() {
+        canClick = false;
+        coin.style.pointerEvents = 'none';
+        collectBtn.disabled = true;
+        
+        // Отправляем запрос на сервер для начисления выигрыша
+        fetch('/games/valb1k/collect', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                amount: currentBalance
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(`Поздравляем! Вы выиграли ${currentBalance}₽`);
+            } else {
+                alert('Произошла ошибка при получении выигрыша');
+            }
+            resetGame();
+        })
+        .catch(() => {
+            alert('Произошла ошибка при получении выигрыша');
+            resetGame();
+        });
+    }
+    
+    function resetGame() {
+        clicks = 0;
+        currentMultiplier = 1;
+        currentBalance = 0;
+        canClick = true;
+        
+        clickCount.textContent = clicks;
+        multiplier.textContent = `x${currentMultiplier}`;
+        balance.textContent = currentBalance;
+        
+        coin.style.pointerEvents = 'auto';
+        collectBtn.disabled = false;
+    }
+});
+</script>
+{% endblock %} 

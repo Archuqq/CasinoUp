@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block title %}Dice{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card bg-dark border-secondary">
+                <div class="card-header">
+                    <h2 class="text-center">Dice</h2>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <div id="dice-display" class="display-1 mb-4">?</div>
+                        <div id="result-message" class="h4 mb-4"></div>
+                    </div>
+                    
+                    <form id="dice-form" class="mb-4">
+                        <div class="mb-3">
+                            <label for="bet" class="form-label">Ставка</label>
+                            <input type="number" class="form-control bg-dark text-light border-secondary" 
+                                   id="bet" name="bet" min="1" step="1" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="number" class="form-label">Число (1-99)</label>
+                            <input type="number" class="form-control bg-dark text-light border-secondary" 
+                                   id="number" name="number" min="1" max="99" value="50" required>
+                        </div>
+                        <div class="mb-3">
+                            <div class="btn-group w-100" role="group">
+                                <input type="radio" class="btn-check" name="choice" id="over" value="over" checked>
+                                <label class="btn btn-outline-primary" for="over">Больше</label>
+                                
+                                <input type="radio" class="btn-check" name="choice" id="under" value="under">
+                                <label class="btn btn-outline-primary" for="under">Меньше</label>
+                            </div>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">Играть</button>
+                        </div>
+                    </form>
+                    
+                    <div class="text-center">
+                        <h4>Правила:</h4>
+                        <p>Выберите число от 1 до 99 и угадайте, будет ли результат больше или меньше этого числа.</p>
+                        <p>Чем ближе ваше число к краю (1 или 99), тем выше возможный выигрыш!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('dice-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const formData = new FormData(form);
+    
+    try {
+        const response = await fetch('{{ url_for("games.dice") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams(formData)
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            const display = document.getElementById('dice-display');
+            const message = document.getElementById('result-message');
+            
+            // Анимация
+            display.innerHTML = '🎲';
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // Показываем результат
+            display.innerHTML = data.result.toFixed(2);
+            
+            if (data.win) {
+                message.innerHTML = `Поздравляем! Вы выиграли ${data.amount.toFixed(2)}₽`;
+                message.className = 'h4 mb-4 text-success';
+            } else {
+                message.innerHTML = 'Попробуйте еще раз!';
+                message.className = 'h4 mb-4 text-danger';
+            }
+            
+            // Обновляем баланс в шапке
+            const balanceElement = document.querySelector('.nav-link span.balance');
+            if (balanceElement) {
+                balanceElement.textContent = `${data.new_balance.toFixed(2)}₽`;
+            }
+        } else {
+            throw new Error(data.error || 'Произошла ошибка');
+        }
+    } catch (error) {
+        alert(error.message);
+    }
+});
+
+// Обновление коэффициента в реальном времени
+document.getElementById('number').addEventListener('input', (e) => {
+    const number = parseFloat(e.target.value);
+    const choice = document.querySelector('input[name="choice"]:checked').value;
+    
+    if (number >= 1 && number <= 99) {
+        const multiplier = 100 / (choice === 'over' ? (100 - number) : number);
+        document.getElementById('multiplier').textContent = multiplier.toFixed(2);
+    }
+});
+
+document.querySelectorAll('input[name="choice"]').forEach(radio => {
+    radio.addEventListener('change', () => {
+        const number = parseFloat(document.getElementById('number').value);
+        const choice = radio.value;
+        
+        if (number >= 1 && number <= 99) {
+            const multiplier = 100 / (choice === 'over' ? (100 - number) : number);
+            document.getElementById('multiplier').textContent = multiplier.toFixed(2);
+        }
+    });
+});
+</script>
+{% endblock %} 

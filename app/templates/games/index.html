@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+
+{% block title %}Игры{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="text-center mb-5">Выберите игру</h1>
+    
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+        <div class="col">
+            <div class="card bg-dark border-0 h-100">
+                <div class="card-img-wrapper" style="height: 300px; overflow: hidden;">
+                    <img src="{{ url_for('static', filename='images/slots.jpg') }}" class="card-img-top h-100 w-100" style="object-fit: cover;" alt="Слоты">
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">Слоты</h5>
+                    <p class="card-text text-muted">Классическая игра в слоты с различными символами и множителями.</p>
+                    <div class="d-grid">
+                        <a href="{{ url_for('games.slots') }}" class="btn btn-primary w-100">Играть</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col">
+            <div class="card bg-dark border-0 h-100">
+                <div class="card-img-wrapper" style="height: 300px; overflow: hidden;">
+                    <img src="{{ url_for('static', filename='images/dice.svg') }}" class="card-img-top h-100 w-100" style="object-fit: cover;" alt="Dice">
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">Dice</h5>
+                    <p class="card-text text-muted">Угадайте, будет ли число больше или меньше выбранного значения.</p>
+                    <div class="d-grid">
+                        <a href="{{ url_for('games.dice') }}" class="btn btn-primary w-100">Играть</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    
+        <div class="col">
+            <div class="card bg-dark border-0 h-100">
+                <div class="card-img-wrapper" style="height: 300px; overflow: hidden;">
+                    <img src="{{ url_for('static', filename='images/coinflip.jpg') }}" class="card-img-top h-100 w-100" style="object-fit: cover;" alt="Монетка">
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">Монетка</h5>
+                    <p class="card-text text-muted">Классическая игра в орла и решку с множителем x2.</p>
+                    <div class="d-grid">
+                        <a href="{{ url_for('games.coinflip') }}" class="btn btn-primary w-100">Играть</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        {% if has_valb1k_promo %}
+        <div class="col">
+            <div class="card bg-dark border-0 h-100">
+                <div class="card-img-wrapper" style="height: 300px; overflow: hidden;">
+                    <img src="{{ url_for('static', filename='images/valb1k_coin.png') }}" class="card-img-top h-100 w-100" style="object-fit: cover;" alt="Valb1k Coin">
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">Valb1k Coin</h5>
+                    <p class="card-text text-muted">Кликай по монете и увеличивай множитель!</p>
+                    <div class="d-grid">
+                        <a href="{{ url_for('games.valb1k') }}" class="btn btn-primary w-100">Играть</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    {% if not has_valb1k_promo %}
+    <!-- Форма для ввода промокода -->
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-6">
+            <div class="card bg-dark border-0">
+                <div class="card-body">
+                    <h5 class="text-muted mb-4">АКТИВИРОВАТЬ ПРОМОКОД ДЛЯ СЕКРЕТНОЙ ИГРЫ</h5>
+                    <div class="input-group">
+                        <input type="text" class="form-control bg-dark text-light" id="promo-input" placeholder="Введите промокод">
+                        <button class="btn btn-primary" id="check-promo">Активировать</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+{% block styles %}
+<style>
+.card {
+    transition: transform 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+.btn-primary {
+    background: linear-gradient(145deg, #00d2ff, #3a7bd5);
+    border: none;
+    font-weight: 500;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(145deg, #3a7bd5, #00d2ff);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 210, 255, 0.3);
+}
+
+.card-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.card-text {
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.input-group .form-control {
+    border-color: #2d3555;
+}
+
+.input-group .btn {
+    border-color: #2d3555;
+}
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const promoInput = document.getElementById('promo-input');
+    const checkPromoBtn = document.getElementById('check-promo');
+    
+    if (checkPromoBtn) {
+        checkPromoBtn.addEventListener('click', function() {
+            const code = promoInput.value.trim().toUpperCase();
+            
+            fetch('/games/valb1k/check_promo', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ code: code })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Перезагружаем страницу для отображения новой игры
+                    window.location.reload();
+                } else {
+                    alert(data.message || 'Неверный промокод!');
+                }
+            })
+            .catch(error => {
+                alert('Произошла ошибка при проверке промокода');
+            });
+        });
+    }
+});
+</script>
+{% endblock %}
+{% endblock %} 

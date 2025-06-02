@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card bg-dark text-light border-secondary">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3>История пополнений</h3>
+                    <a href="{{ url_for('main.deposit') }}" class="btn btn-primary">Новое пополнение</a>
+                </div>
+                <div class="card-body">
+                    {% if deposits %}
+                    <div class="table-responsive">
+                        <table class="table table-dark table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Дата</th>
+                                    <th>Сумма</th>
+                                    <th>Статус</th>
+                                    <th>Комментарий</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for deposit in deposits %}
+                                <tr>
+                                    <td>{{ deposit.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+                                    <td>{{ "%.2f"|format(deposit.amount) }}₽</td>
+                                    <td>
+                                        {% if deposit.status == 'pending' %}
+                                            <span class="badge bg-warning">В обработке</span>
+                                        {% elif deposit.status == 'approved' %}
+                                            <span class="badge bg-success">Одобрено</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Отклонено</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ deposit.comment or '-' }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-center text-muted">История пополнений пуста</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

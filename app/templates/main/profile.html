@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <!-- Карточка профиля -->
+        <div class="col-md-4 mb-4">
+            <div class="card bg-dark text-light border-secondary">
+                <div class="card-body text-center">
+                    <h1 class="display-1 mb-4">👤</h1>
+                    <h2 class="card-title">{{ current_user.username }}</h2>
+                    <p class="card-text">{{ current_user.email }}</p>
+                    <h3 class="text-warning">{{ "%.2f"|format(current_user.balance) }}₽</h3>
+                    <p class="text-muted">Дата регистрации: {{ current_user.created_at.strftime('%d.%m.%Y') }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- История транзакций -->
+        <div class="col-md-8">
+            <div class="card bg-dark text-light border-secondary">
+                <div class="card-header">
+                    <h3>История транзакций</h3>
+                </div>
+                <div class="card-body">
+                    {% if transactions %}
+                    <div class="table-responsive">
+                        <table class="table table-dark table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Дата</th>
+                                    <th>Тип</th>
+                                    <th>Сумма</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for transaction in transactions %}
+                                <tr>
+                                    <td>{{ transaction.timestamp.strftime('%d.%m.%Y %H:%M') }}</td>
+                                    <td>
+                                        {% if transaction.type == 'deposit' %}
+                                            💰 Пополнение
+                                        {% elif transaction.type == 'withdraw' %}
+                                            💸 Вывод
+                                        {% elif transaction.type == 'win' %}
+                                            🎯 Выигрыш
+                                        {% elif transaction.type == 'loss' %}
+                                            📉 Проигрыш
+                                        {% elif transaction.type == 'promo_code' %}
+                                            🎁 Промокод
+                                        {% else %}
+                                            {{ transaction.type }}
+                                        {% endif %}
+                                    </td>
+                                    <td class="{% if transaction.amount > 0 %}text-success{% else %}text-danger{% endif %}">
+                                        {{ "%.2f"|format(transaction.amount) }}₽
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted text-center">История транзакций пуста</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

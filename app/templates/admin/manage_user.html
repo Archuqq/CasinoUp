@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}Управление пользователем{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card bg-dark border-secondary">
+                <div class="card-header">
+                    <h2>Управление пользователем {{ user.username }}</h2>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {{ form.hidden_tag() }}
+                        <div class="mb-3">
+                            <label class="form-label">ID пользователя: {{ user.id }}</label>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Email: {{ user.email }}</label>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Дата регистрации: {{ user.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</label>
+                        </div>
+                        <div class="mb-3">
+                            {{ form.balance.label(class="form-label") }}
+                            {{ form.balance(class="form-control bg-dark text-light") }}
+                            {% if form.balance.errors %}
+                                {% for error in form.balance.errors %}
+                                    <div class="alert alert-danger">{{ error }}</div>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                        <div class="d-grid gap-2">
+                            {{ form.submit(class="btn btn-primary") }}
+                            <a href="{{ url_for('admin.admin_panel') }}" class="btn btn-secondary">Назад</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}Главная{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8 text-center">
+            <h1 class="display-4 mb-4">Добро пожаловать в CasinoUp</h1>
+            
+            {% if current_user.is_authenticated %}
+                <p class="lead mb-4">Ваш текущий баланс: {{ current_user.balance }}₽</p>
+                <div class="d-grid gap-3 d-sm-flex justify-content-sm-center">
+                    <a href="{{ url_for('games.index') }}" class="btn btn-primary btn-lg px-4 gap-3">
+                        Играть
+                    </a>
+                </div>
+            {% else %}
+                <p class="lead mb-4">Лучшие игры и высокие выигрыши ждут вас!</p>
+                <div class="d-grid gap-3 d-sm-flex justify-content-sm-center">
+                    <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-lg px-4 gap-3">
+                        Войти
+                    </a>
+                    <a href="{{ url_for('auth.register') }}" class="btn btn-outline-secondary btn-lg px-4">
+                        Регистрация
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="row mt-5">
+        <div class="col-md-3">
+            <div class="card bg-dark border-secondary h-100">
+                <div class="card-body">
+                    <h5 class="card-title">🎰 Слоты</h5>
+                    <p class="card-text">Классические слоты с множителями до x5 и разнообразными символами.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-dark border-secondary h-100">
+                <div class="card-body">
+                    <h5 class="card-title">🎲 Dice</h5>
+                    <p class="card-text">Угадывайте числа и получайте высокие коэффициенты выигрыша.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-dark border-secondary h-100">
+                <div class="card-body">
+                    <h5 class="card-title">💰 Монетка</h5>
+                    <p class="card-text">Испытайте удачу в игре с подбрасыванием монеты и получите бонусные множители.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-dark border-secondary h-100">
+                <div class="card-body">
+                    <h5 class="card-title">🎁 Промокоды</h5>
+                    <p class="card-text">Регулярные акции и бонусы для наших игроков.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

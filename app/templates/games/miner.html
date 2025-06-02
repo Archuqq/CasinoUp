@@ -1,0 +1,455 @@
+{% extends "base.html" %}
+
+{% block title %}Минер{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-4">
+            <div class="card bg-dark border-0 mb-4">
+                <div class="card-body">
+                    <h5 class="text-muted mb-4">СУММА СТАВКИ</h5>
+                    <div class="bet-controls mb-4">
+                        <div class="input-group mb-3">
+                            <input type="number" class="form-control bg-dark text-light" id="bet-input" value="1.00" min="1">
+                            <div class="input-group-append">
+                                <button class="btn btn-outline-primary" id="half-bet">1/2</button>
+                                <button class="btn btn-outline-primary" id="double-bet">x2</button>
+                            </div>
+                        </div>
+                        <div class="quick-bet-buttons d-flex justify-content-between mb-3">
+                            <button class="btn btn-outline-primary btn-sm">+1</button>
+                            <button class="btn btn-outline-primary btn-sm">+10</button>
+                            <button class="btn btn-outline-primary btn-sm">+100</button>
+                            <button class="btn btn-outline-primary btn-sm">+1000</button>
+                        </div>
+                    </div>
+
+                    <h5 class="text-muted mb-4">КОЛИЧЕСТВО БОМБ</h5>
+                    <div class="mines-controls mb-4">
+                        <div class="btn-group w-100 mb-3">
+                            <button class="btn btn-outline-primary active" id="mines-3">3</button>
+                            <button class="btn btn-outline-primary" id="mines-5">5</button>
+                            <button class="btn btn-outline-primary" id="mines-10">10</button>
+                            <button class="btn btn-outline-primary" id="mines-24">24</button>
+                        </div>
+                        <button class="btn btn-primary w-100" id="place-bet">Войти</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="card bg-dark border-0">
+                <div class="card-body">
+                    <div class="game-stats d-flex justify-content-between mb-4">
+                        <div class="d-flex align-items-center">
+                            <img src="/static/images/diamond-icon.png" alt="Gems" class="me-2" style="width: 24px;">
+                            <span class="text-primary fs-4" id="win-amount">22</span>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <img src="/static/images/bomb-icon.png" alt="Bombs" class="me-2" style="width: 24px;">
+                            <span class="text-danger fs-4" id="mines-count">3</span>
+                        </div>
+                    </div>
+
+                    <div class="game-field mb-4">
+                        <div class="miner-grid" id="miner-grid">
+                            {% for i in range(25) %}
+                            <button class="miner-cell" data-index="{{ i }}"></button>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between gap-3 mb-4">
+                        <button class="btn btn-primary flex-grow-1 py-3" id="place-bet">Сделать ставку</button>
+                        <button class="btn btn-success flex-grow-1 py-3" id="collect" disabled>Забрать выигрыш</button>
+                    </div>
+
+                    <div class="multipliers-slider">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <button class="btn btn-link text-muted"><i class="fas fa-chevron-left"></i></button>
+                            <div class="multiplier-steps d-flex justify-content-between flex-grow-1">
+                                <div class="multiplier-step">
+                                    <span class="text-muted">x1.07</span>
+                                    <small class="d-block text-muted">1 ГЕМ</small>
+                                </div>
+                                <div class="multiplier-step">
+                                    <span class="text-muted">x1.23</span>
+                                    <small class="d-block text-muted">2 ГЕМ</small>
+                                </div>
+                                <div class="multiplier-step">
+                                    <span class="text-muted">x1.41</span>
+                                    <small class="d-block text-muted">3 ГЕМ</small>
+                                </div>
+                                <div class="multiplier-step">
+                                    <span class="text-muted">x1.64</span>
+                                    <small class="d-block text-muted">4 ГЕМ</small>
+                                </div>
+                                <div class="multiplier-step">
+                                    <span class="text-muted">x1.91</span>
+                                    <small class="d-block text-muted">5 ГЕМ</small>
+                                </div>
+                                <div class="multiplier-step">
+                                    <span class="text-muted">x2.25</span>
+                                    <small class="d-block text-muted">6 ГЕМ</small>
+                                </div>
+                            </div>
+                            <button class="btn btn-link text-muted"><i class="fas fa-chevron-right"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно для результата -->
+<div class="modal fade" id="resultModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark text-light">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title">Результат игры</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p id="result-message" class="text-center fs-5 mb-0"></p>
+            </div>
+            <div class="modal-footer border-secondary">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+<style>
+.card {
+    background: #1a1f35 !important;
+}
+
+.miner-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+    background: #151929;
+    padding: 15px;
+    border-radius: 15px;
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.miner-cell {
+    position: relative;
+    padding: 0;
+    transition: all 0.3s ease;
+    background: linear-gradient(145deg, #00d2ff, #3a7bd5);
+    border: none;
+    border-radius: 8px;
+    aspect-ratio: 1;
+    width: 100%;
+    cursor: pointer;
+}
+
+.miner-cell:hover:not(:disabled) {
+    transform: scale(1.05);
+    box-shadow: 0 0 15px rgba(0, 210, 255, 0.5);
+}
+
+.miner-cell:disabled {
+    opacity: 1;
+    cursor: default;
+}
+
+.miner-cell.btn-success {
+    background: linear-gradient(145deg, #00ff87, #60efff);
+}
+
+.miner-cell.btn-danger {
+    background: linear-gradient(145deg, #ff416c, #ff4b2b);
+}
+
+.miner-cell::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 60%;
+    height: 60%;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+.miner-cell.btn-success::after {
+    background-image: url('/static/images/diamond-icon.png');
+}
+
+.miner-cell.btn-danger::after {
+    background-image: url('/static/images/bomb-icon.png');
+}
+
+.btn-primary, .btn-success {
+    font-size: 1.1rem;
+    font-weight: 500;
+}
+
+.btn-primary {
+    background: linear-gradient(145deg, #00d2ff, #3a7bd5);
+    border: none;
+}
+
+.btn-success {
+    background: linear-gradient(145deg, #00ff87, #60efff);
+    border: none;
+}
+
+.btn-primary:hover, .btn-success:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 210, 255, 0.3);
+}
+
+.btn-primary:disabled, .btn-success:disabled {
+    opacity: 0.7;
+    transform: none;
+    box-shadow: none;
+}
+
+.btn-group .btn {
+    flex: 1;
+}
+
+.multiplier-step {
+    text-align: center;
+    padding: 5px;
+}
+
+.quick-bet-buttons .btn {
+    padding: 5px 10px;
+    font-size: 0.875rem;
+}
+
+.input-group .btn {
+    border-color: #2d3555;
+    color: #fff;
+}
+
+.input-group .btn:hover {
+    background-color: #2d3555;
+}
+
+.input-group input {
+    border-color: #2d3555;
+}
+
+.btn-outline-primary {
+    border-color: #2d3555;
+    color: #fff;
+}
+
+.btn-outline-primary:hover,
+.btn-outline-primary.active {
+    background-color: #2d3555;
+    border-color: #2d3555;
+    color: #fff;
+}
+
+.multipliers-slider {
+    background: #151929;
+    padding: 15px;
+    border-radius: 10px;
+}
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let gameState = {
+        inProgress: false,
+        bet: 1.00,
+        mines: 3,
+        minePositions: [],
+        openedCells: [],
+        multiplier: 1.0
+    };
+
+    const multiplierTable = {
+        3: [1.07, 1.23, 1.41, 1.64, 1.91, 2.25, 2.63, 3.11, 3.69, 4.39],
+        5: [1.31, 1.71, 2.25, 2.97, 3.94, 5.25, 7.05, 9.54, 13.02, 17.95],
+        10: [1.75, 3.07, 5.39, 9.49, 16.82, 30.08, 54.47, 100.12, 187.72, 360.99],
+        24: [12.08, 72.48, 362.42, 1812.1, 9060.52]
+    };
+
+    const resultModal = new bootstrap.Modal(document.getElementById('resultModal'));
+
+    function showResult(message, isWin = false) {
+        const messageElement = document.getElementById('result-message');
+        messageElement.textContent = message;
+        messageElement.className = isWin ? 'text-success text-center fs-5 mb-0' : 'text-danger text-center fs-5 mb-0';
+        resultModal.show();
+    }
+
+    function updateUI() {
+        document.getElementById('win-amount').textContent = Math.floor(gameState.bet * gameState.multiplier);
+        document.getElementById('mines-count').textContent = gameState.mines;
+        document.getElementById('bet-input').disabled = gameState.inProgress;
+        document.getElementById('place-bet').disabled = gameState.inProgress;
+        document.getElementById('collect').disabled = !gameState.inProgress;
+        
+        document.querySelectorAll('.miner-cell').forEach(cell => {
+            cell.disabled = !gameState.inProgress || gameState.openedCells.includes(parseInt(cell.dataset.index));
+        });
+
+        // Обновляем состояние кнопок управления ставкой
+        document.querySelectorAll('.quick-bet-buttons button').forEach(btn => {
+            btn.disabled = gameState.inProgress;
+        });
+        document.getElementById('half-bet').disabled = gameState.inProgress;
+        document.getElementById('double-bet').disabled = gameState.inProgress;
+    }
+
+    function generateMines() {
+        const positions = new Set();
+        while (positions.size < gameState.mines) {
+            positions.add(Math.floor(Math.random() * 25));
+        }
+        return Array.from(positions);
+    }
+
+    function startGame() {
+        const bet = parseFloat(document.getElementById('bet-input').value);
+        if (bet < 1) {
+            showResult('Минимальная ставка 1₽');
+            return;
+        }
+
+        fetch('/games/miner/start', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                bet: bet,
+                mines: gameState.mines
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                gameState.inProgress = true;
+                gameState.bet = bet;
+                gameState.minePositions = generateMines();
+                gameState.openedCells = [];
+                gameState.multiplier = 1.0;
+                document.querySelectorAll('.miner-cell').forEach(cell => {
+                    cell.className = 'miner-cell';
+                });
+                updateUI();
+            } else {
+                showResult(data.message);
+            }
+        });
+    }
+
+    function openCell(index) {
+        if (gameState.minePositions.includes(index)) {
+            gameState.inProgress = false;
+            showMines();
+            showResult('Игра окончена! Вы проиграли.');
+            updateUI();
+        } else {
+            gameState.openedCells.push(index);
+            const cell = document.querySelector(`[data-index="${index}"]`);
+            cell.classList.add('btn-success');
+
+            const safeClicks = gameState.openedCells.length - 1;
+            if (safeClicks < multiplierTable[gameState.mines].length) {
+                gameState.multiplier = multiplierTable[gameState.mines][safeClicks];
+            }
+            updateUI();
+        }
+    }
+
+    function showMines() {
+        gameState.minePositions.forEach(index => {
+            const cell = document.querySelector(`[data-index="${index}"]`);
+            cell.classList.add('btn-danger');
+        });
+    }
+
+    function collectWin() {
+        if (!gameState.inProgress) return;
+
+        fetch('/games/miner/collect', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                win: Math.floor(gameState.bet * gameState.multiplier)
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                gameState.inProgress = false;
+                showMines();
+                showResult(`Поздравляем! Вы выиграли ${Math.floor(gameState.bet * gameState.multiplier)}₽`, true);
+                updateUI();
+            } else {
+                showResult(data.message);
+            }
+        });
+    }
+
+    // Обработчики для кнопок управления ставкой
+    document.getElementById('half-bet').addEventListener('click', () => {
+        const currentBet = parseFloat(document.getElementById('bet-input').value);
+        document.getElementById('bet-input').value = (currentBet / 2).toFixed(2);
+    });
+
+    document.getElementById('double-bet').addEventListener('click', () => {
+        const currentBet = parseFloat(document.getElementById('bet-input').value);
+        document.getElementById('bet-input').value = (currentBet * 2).toFixed(2);
+    });
+
+    document.querySelectorAll('.quick-bet-buttons button').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const amount = parseInt(btn.textContent.replace('+', ''));
+            const currentBet = parseFloat(document.getElementById('bet-input').value);
+            document.getElementById('bet-input').value = (currentBet + amount).toFixed(2);
+        });
+    });
+
+    // Event Listeners
+    document.getElementById('place-bet').addEventListener('click', startGame);
+    document.getElementById('collect').addEventListener('click', collectWin);
+
+    document.querySelectorAll('.miner-cell').forEach(cell => {
+        cell.addEventListener('click', () => {
+            if (gameState.inProgress && !gameState.openedCells.includes(parseInt(cell.dataset.index))) {
+                openCell(parseInt(cell.dataset.index));
+            }
+        });
+    });
+
+    ['3', '5', '10', '24'].forEach(mines => {
+        document.getElementById(`mines-${mines}`).addEventListener('click', () => {
+            if (!gameState.inProgress) {
+                gameState.mines = parseInt(mines);
+                document.querySelectorAll('.btn-outline-primary').forEach(btn => btn.classList.remove('active'));
+                document.getElementById(`mines-${mines}`).classList.add('active');
+                document.getElementById('mines-count').textContent = mines;
+            }
+        });
+    });
+
+    // Инициализация
+    document.getElementById('mines-3').classList.add('active');
+    updateUI();
+});
+</script>
+{% endblock %} 

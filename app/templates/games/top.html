@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block title %}Топ игроков{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-dark text-white">
+                    <h3 class="mb-0 text-center">🏆 Топ игроков по балансу</h3>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-dark table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th class="text-center">#</th>
+                                    <th>Игрок</th>
+                                    <th class="text-end">Баланс</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in top_users %}
+                                <tr class="{% if user == current_user %}table-primary{% endif %}">
+                                    <td class="text-center">
+                                        {% if loop.index == 1 %}
+                                            🥇
+                                        {% elif loop.index == 2 %}
+                                            🥈
+                                        {% elif loop.index == 3 %}
+                                            🥉
+                                        {% else %}
+                                            {{ loop.index }}
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ user.username }}</td>
+                                    <td class="text-end">{{ "%.2f"|format(user.balance) }}₽</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+<style>
+.card {
+    background: #1a1f35;
+    border: none;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+}
+
+.table {
+    margin-bottom: 0;
+    background: #1a1f35;
+}
+
+.table th {
+    border-top: none;
+    border-bottom: 2px solid #2d3555;
+    color: #6c757d;
+    font-weight: 500;
+    padding: 15px;
+}
+
+.table td {
+    border-color: #2d3555;
+    padding: 15px;
+    vertical-align: middle;
+}
+
+.table-primary {
+    background: rgba(0, 123, 255, 0.1) !important;
+}
+
+.table-hover tbody tr:hover {
+    background: rgba(255, 255, 255, 0.05) !important;
+}
+
+.card-header {
+    background: linear-gradient(145deg, #1a1f35, #2d3555) !important;
+    border-bottom: none;
+    padding: 20px;
+}
+
+.card-header h3 {
+    font-weight: 500;
+    margin: 0;
+}
+</style>
+{% endblock %} 
